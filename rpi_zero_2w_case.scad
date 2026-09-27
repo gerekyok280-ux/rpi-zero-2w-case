@@ -1,146 +1,171 @@
-// Raspberry Pi Zero 2 W - Kapaklı Kutu
-// STL/3D baskı için OpenSCAD tasarımı
-// Hazırlayan: GitHub Copilot
+// Raspberry Pi Zero 2 W - Premium Kapaklı Kutu
+// OpenSCAD tasarımı
+// Geliştirilmiş sürüm: gerçek Pi Zero 2 W ölçüleri ve daha iyi baskı/uyum dengesi
 
-$fn = 48;
+$fn = 72;
 
-// Temel ölçüler (mm)
-board_w = 65;
-board_d = 30;
-board_t = 1.6;
+// ---------------------------
+// Resmi Raspberry Pi Zero 2 W boyutları
+// ---------------------------
+board_w = 65;      // mm
+board_d = 30;      // mm
+board_t = 1.6;     // mm
 
-wall = 2.2;
-clearance = 0.5;
-corner_r = 3;
+// Montaj deliği bilgisi (resmi ölçü)
+mount_hole_spacing = 58;      // mm
+mount_hole_diameter = 2.75;   // mm
+mount_hole_margin = 2.5;      // mm
 
-case_w = board_w + 2 * wall + 2 * clearance + 4;
-case_d = board_d + 2 * wall + 2 * clearance + 4;
-case_h = 26;
-lid_h = 7;
-base_h = case_h - lid_h;
+// Kutu sabitleri
+wall = 2.2;        // duvar kalınlığı
+clearance = 0.45;  // kart ile gövde arasındaki tolerans
+corner_r = 4;
+
+outer_w = board_w + 2 * wall + 2 * clearance + 4;
+outer_d = board_d + 2 * wall + 2 * clearance + 4;
+base_h = 18;
+lid_h = 8;
 
 module rounded_box(size = [10, 10, 10], r = 2) {
     hull() {
         for (x = [r, size[0]-r])
             for (y = [r, size[1]-r])
-                translate([x, y, 0])
-                    cylinder(h = size[2], r = r);
+                for (z = [r, size[2]-r])
+                    translate([x, y, z])
+                        sphere(r = r);
     }
 }
 
-module standoff() {
+module mounting_post() {
     cylinder(h = 6, r = 2.3);
 }
 
-module board_mount_holes() {
-    // Pi Zero 2 W montaj deliği pozisyonları
-    positions = [
-        [3.5, 3.5],
-        [3.5, case_d - 3.5],
-        [case_w - 3.5, 3.5],
-        [case_w - 3.5, case_d - 3.5]
-    ];
+module board_supports() {
+    // İç desteği kart için
+    translate([wall + clearance + 2, wall + clearance + 2, 0])
+        for (x = [0, board_w - 10])
+            for (y = [0, board_d - 10])
+                translate([x, y, 0])
+                    cylinder(h = 3.5, r = 2.1);
+}
 
-    for (p = positions)
-        translate([p[0], p[1], 0])
-            cylinder(h = 12, r = 1.65, center = true);
+module mount_holes_layout() {
+    // Gerçek Pi Zero 2 W eksen planı:
+    // 2 adet montaj deliği, merkezler arası 58 mm
+    // x pozisyonları 2.5 ve 60.5 mm, y = 2.5 mm
+    x_positions = [2.5, 60.5];
+    y_pos = 2.5;
+    for (x = x_positions)
+        translate([x + wall + clearance + 1.2, y_pos + wall + clearance + 1.2, 0])
+            cylinder(h = 12, r = mount_hole_diameter/2, center = true);
+}
+
+module front_ports() {
+    // Ön yüz paneli: micro USB + HDMI + USB + SD kart
+
+    // Power / microUSB
+    translate([outer_w * 0.17, -0.5, base_h * 0.56])
+        rotate([90, 0, 0])
+            cube([10.5, 7.0, 2.4], center = true);
+
+    // USB 2.0
+    translate([outer_w * 0.44, -0.5, base_h * 0.55])
+        rotate([90, 0, 0])
+            cube([12.5, 8.0, 2.4], center = true);
+
+    // HDMI 1
+    translate([outer_w * 0.72, -0.5, base_h * 0.38])
+        rotate([90, 0, 0])
+            cube([12.5, 7.5, 2.4], center = true);
+
+    // HDMI 2
+    translate([outer_w * 0.72, -0.5, base_h * 0.68])
+        rotate([90, 0, 0])
+            cube([12.5, 7.5, 2.4], center = true);
+
+    // microSD kart yuvası (ön yüz / alt taraf)
+    translate([outer_w * 0.35, -0.5, base_h * 0.22])
+        rotate([90, 0, 0])
+            cube([18.0, 4.2, 2.4], center = true);
+
+    // Ek kablo/izleme için küçük yedek boşluk
+    translate([outer_w * 0.10, -0.5, base_h * 0.80])
+        rotate([90, 0, 0])
+            cube([14.0, 8.0, 2.5], center = true);
+}
+
+module side_gpio_window() {
+    // GPIO erişimi için yan pencere
+    translate([-0.5, outer_d * 0.48, base_h * 0.52])
+        rotate([0, 90, 0])
+            cube([18.0, 12.0, 2.2], center = true);
 }
 
 module ventilation_pattern() {
-    // Kapak ve yan yüzeylerde havalandırma için ince delikler
-    for (x = [6 : 8 : case_w - 6])
-        for (y = [3 : 8 : case_d - 3])
-            translate([x, y, 0])
+    // Kapak üstünde havalandırma deliği düzeni
+    spacing = 9;
+    for (x = [10 : spacing : outer_w - 10])
+        for (y = [10 : spacing : outer_d - 10])
+            translate([x, y, lid_h / 2])
                 rotate([90, 0, 0])
-                    cylinder(h = 1.5, r = 0.9, center = true);
-}
-
-module port_cutouts() {
-    // Ana bağlantı noktaları (üst yüzeye göre kenar üzerinden)
-    // Y ekseni dışarı doğru açık olan yüzey: y = 0
-    // Micro USB / USB / HDMI / SD Kart
-
-    // Micro USB / Power
-    translate([case_w * 0.22, -1, case_h * 0.48])
-        rotate([90, 0, 0])
-            cube([10, 6, 2.5], center = true);
-
-    // USB 2.0
-    translate([case_w * 0.49, -1, case_h * 0.50])
-        rotate([90, 0, 0])
-            cube([12, 6, 2.5], center = true);
-
-    // HDMI (2 x)
-    translate([case_w * 0.70, -1, case_h * 0.42])
-        rotate([90, 0, 0])
-            cube([11, 6, 2.5], center = true);
-
-    translate([case_w * 0.70, -1, case_h * 0.62])
-        rotate([90, 0, 0])
-            cube([11, 6, 2.5], center = true);
-
-    // microSD kart yuvası
-    translate([case_w * 0.38, -1, case_h * 0.22])
-        rotate([90, 0, 0])
-            cube([18, 4, 2.2], center = true);
-
-    // GPIO erişimi için yan pencere
-    translate([-1, case_d * 0.42, case_h * 0.55])
-        rotate([0, 90, 0])
-            cube([18, 14, 2.5], center = true);
+                    cylinder(h = 2.2, r = 1.0, center = true);
 }
 
 module bottom_case() {
     difference() {
-        rounded_box([case_w, case_d, case_h], r = corner_r);
+        rounded_box([outer_w, outer_d, base_h], r = corner_r);
 
         // İç boşluk
-        translate([wall + clearance, wall + clearance, wall + 1.2])
-            rounded_box([case_w - 2 * (wall + clearance), case_d - 2 * (wall + clearance), case_h], r = max(corner_r - 1, 1));
+        translate([wall + clearance + 1.2, wall + clearance + 1.2, wall + 1.2])
+            rounded_box([
+                outer_w - 2 * (wall + clearance + 1.2),
+                outer_d - 2 * (wall + clearance + 1.2),
+                base_h
+            ], r = max(corner_r - 1, 1));
 
-        // Aşağıdaki yüzeye port açılışları
-        port_cutouts();
-
-        // Güç ve kablo düzeni için küçük açıklık
-        translate([case_w * 0.12, -1, case_h * 0.72])
-            rotate([90, 0, 0])
-                cube([14, 8, 2.5], center = true);
+        front_ports();
+        side_gpio_window();
     }
 
-    // Montaj desteği
-    for (x = [6, case_w - 6])
-        for (y = [6, case_d - 6])
-            translate([x, y, 0])
-                standoff();
+    // Gerçek montaj deliği pozisyonları
+    for (x = [2.5, 60.5])
+        translate([x + wall + clearance + 1.2, 2.5 + wall + clearance + 1.2, 0])
+            mounting_post();
 
-    // Alt kenar koruyucu lip
-    translate([wall, wall, 0])
-        difference() {
-            cube([case_w - 2*wall, case_d - 2*wall, 2]);
-            translate([1.5, 1.5, -1])
-                cube([case_w - 2*wall - 3, case_d - 2*wall - 3, 4]);
-        }
+    // İç kart destekleri
+    board_supports();
 }
 
-module top_lid() {
+module lid() {
     difference() {
-        rounded_box([case_w, case_d, lid_h], r = corner_r);
+        rounded_box([outer_w, outer_d, lid_h], r = corner_r);
 
-        // İç boşluk: kapağın merkezinde hafif çukur
-        translate([wall + 1.5, wall + 1.5, 2])
-            rounded_box([case_w - 2 * (wall + 1.5), case_d - 2 * (wall + 1.5), lid_h], r = max(corner_r - 1, 1));
+        // İç çukur
+        translate([wall + 0.8, wall + 0.8, 1.8])
+            rounded_box([
+                outer_w - 2 * (wall + 0.8),
+                outer_d - 2 * (wall + 0.8),
+                lid_h
+            ], r = max(corner_r - 1, 1));
 
-        // Kapak üst yüzey ventilasyonu
-        translate([case_w / 2, case_d / 2, lid_h * 0.5])
-            ventilation_pattern();
+        ventilation_pattern();
     }
 
-    // Kapağı tutan yan lip
-    translate([wall + 0.4, wall + 0.4, 0])
+    // Kapanma için alt lip
+    translate([wall + 0.35, wall + 0.35, 0])
         difference() {
-            cube([case_w - 2*(wall + 0.4), case_d - 2*(wall + 0.4), 3]);
-            translate([1.8, 1.8, -1])
-                cube([case_w - 2*(wall + 0.4) - 3.6, case_d - 2*(wall + 0.4) - 3.6, 5]);
+            rounded_box([
+                outer_w - 2 * (wall + 0.35),
+                outer_d - 2 * (wall + 0.35),
+                3.5
+            ], r = max(corner_r - 1, 1));
+
+            translate([2.2, 2.2, -0.5])
+                rounded_box([
+                    outer_w - 2 * (wall + 0.35) - 4.4,
+                    outer_d - 2 * (wall + 0.35) - 4.4,
+                    5
+                ], r = max(corner_r - 2, 1));
         }
 }
 
@@ -148,20 +173,13 @@ module assembled_case() {
     translate([0, 0, 0])
         bottom_case();
 
-    translate([0, 0, case_h + 2])
-        top_lid();
+    translate([0, 0, base_h + 2])
+        lid();
 }
 
 assembled_case();
 
-// Aşağıdaki satırları yorumdan çıkarıp STL olarak dışa aktarma için kullanabilirsiniz:
-// export("rpi_zero_2w_case.stl");
-
-// Not: Kapak ve taban ayrı ayrı export edilerek baskıya hazır hale getirilebilir.
-// Örnek:
-// rotate([180,0,0]) bottom_case();
-// top_lid();
-
-
-
+// Ayrı parça dışa aktarma:
+// bottom_case();
+// translate([outer_w + 12, 0, 0]) lid();
 

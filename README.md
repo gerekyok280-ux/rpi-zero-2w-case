@@ -1,42 +1,31 @@
-# Raspberry Pi Zero 2 W Kapaklı Kutu
+# Raspberry Pi Zero 2 W Kapaklı Kutu (Geliştirilmiş Sürüm)
 
-Bu repository, Raspberry Pi Zero 2 W için kapaklı, tüm bağlantı delikleri ve havalandırma açıklıkları olan bir 3D baskı kutusu tasarımı içerir.
+Bu sürüm Raspberry Pi Zero 2 W için daha gerçekçi, daha düzgün ve baskıya elverişli bir kutu tasarımıdır.
 
-## İçerik
-- `rpi_zero_2w_case.scad` — OpenSCAD ile tasarlanmış parametreli kutu.
+## Özellikler
+- Resmi kart ölçülerine göre çalışma
+- Montaj deliği düzeni 58 mm, 2 delik
+- USB, HDMI, microUSB ve microSD için uygun çıkışlar
+- GPIO erişimi için yan pencere
+- Şık havalandırma delikleri
+- Daha düzgün kapanma için alt lip
+- 3D baskı için itibarlı duvar kalınlığı ve tolerans
 
-## Boyutlar
-- Pi kartı: 65 x 30 mm
-- Kutu dış ölçüsü: yaklaşık 74 x 40 mm
-- Kutu yüksekliği: 26 mm
-- Kapak yüksekliği: 7 mm
+## Dosya
+- `rpi_zero_2w_case.scad` — ana OpenSCAD tasarımlı model
 
-## Açık delikler
-- Micro USB / güç girişi
-- USB 2.0
-- 2x HDMI
-- microSD kart yuvası
-- GPIO erişimi için kenar penceresi
-- Havalandırma delikleri
+## Kullanım
+1. OpenSCAD'i açın
+2. Dosyayı yükleyin
+3. `File > Export > Export as STL` seçin
+4. İsterseniz `bottom_case();` ve `lid();` satırlarıyla ayrı parça olarak export edin
 
-## STL çıkarma
-1. OpenSCAD kurun.
-2. `rpi_zero_2w_case.scad` dosyasını açın.
-3. `File > Export > Export as STL` seçin.
-4. İsterseniz `bottom_case();` ve `top_lid();` satırlarını ayrı ayrı render ederek iki parça olarak dışa aktarabilirsiniz.
-
-## Baskı notları
-- Kullanılan malzeme: PLA / PETG
+## Baskı önerileri
+- Malzeme: PETG veya PLA
 - Katman yüksekliği: 0.2 mm
+- Dolgu: %15–20
 - Duvar kalınlığı: 2.2 mm
-- Boşluk: 0.5 mm
-- Kapağın düzgün kapanması için 0.2–0.4 mm arası ayarlama yapılabilir.
+- Kapağın daha rahat kapanması için ilk baskıda 0.2 mm tolerans kontrolü yapılmalıdır
 
-## Görünüm
-- Şık, yuvarlatılmış köşeler
-- Kısa ve kompakt profil
-- 3D baskıda kolay montaj
-
-## Özelleştirme
-`wall`, `clearance`, `case_h`, `lid_h` değerlerini değiştirerek kutuyu istenilen boyuta göre uyarlayabilirsiniz.
-
+## Not
+Bu model, daha önceki kaba sürüme göre daha gerçekçi ve kullanım dostu hale getirilmiştir.
